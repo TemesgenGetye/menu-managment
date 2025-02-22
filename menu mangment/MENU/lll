@@ -1,0 +1,488 @@
+// "use client";
+
+// import { useState, useEffect } from "react";
+// import {
+//   ChevronDown,
+//   ChevronRight,
+//   Plus,
+//   Menu as MenuIcon,
+//   Folder,
+//   LayoutDashboard,
+//   File,
+// } from "lucide-react";
+
+// interface MenuItem {
+//   id: string;
+//   name: string;
+//   parentId: string | null;
+//   depth: number;
+//   type: "root" | "group" | "section" | "item";
+//   children?: MenuItem[];
+// }
+
+// export default function Home() {
+//   const [menus, setMenus] = useState<MenuItem[]>([]);
+//   const [selectedMenu, setSelectedMenu] = useState<MenuItem | null>(null);
+//   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
+//   const [selectedDropdownMenu, setSelectedDropdownMenu] =
+//     useState("system management");
+//   const [expandedNav, setExpandedNav] = useState<Set<string>>(new Set());
+
+//   console.log(menus);
+
+//   useEffect(() => {
+//     const savedMenus = localStorage.getItem("menus");
+//     if (savedMenus) {
+//       setMenus(JSON.parse(savedMenus));
+//     } else {
+//       const initialMenus = [
+//         {
+//           id: "1",
+//           name: "System Management",
+//           parentId: null,
+//           depth: 0,
+//           type: "root",
+//           children: [
+//             {
+//               id: "2",
+//               name: "Systems",
+//               parentId: "1",
+//               depth: 1,
+//               type: "group",
+//               children: [
+//                 {
+//                   id: "3",
+//                   name: "System Code",
+//                   parentId: "2",
+//                   depth: 2,
+//                   type: "section",
+//                   children: [
+//                     {
+//                       id: "4",
+//                       name: "Code Registration",
+//                       parentId: "3",
+//                       depth: 3,
+//                       type: "item",
+//                     },
+//                   ],
+//                 },
+//               ],
+//             },
+//           ],
+//         },
+//       ];
+//       setMenus(initialMenus);
+//       localStorage.setItem("menus", JSON.stringify(initialMenus));
+//     }
+//   }, []);
+
+//   const toggleExpand = (menuId: string, e?: React.MouseEvent) => {
+//     e?.stopPropagation();
+//     setExpandedMenus((prev) => {
+//       const next = new Set(prev);
+//       if (next.has(menuId)) {
+//         next.delete(menuId);
+//       } else {
+//         next.add(menuId);
+//       }
+//       return next;
+//     });
+//   };
+
+//   const toggleNavExpand = (menuId: string, e?: React.MouseEvent) => {
+//     e?.stopPropagation();
+//     setExpandedNav((prev) => {
+//       const next = new Set(prev);
+//       if (next.has(menuId)) {
+//         next.delete(menuId);
+//       } else {
+//         next.add(menuId);
+//       }
+//       return next;
+//     });
+//   };
+
+//   const expandAll = () => {
+//     const allIds = getAllMenuIds(menus);
+//     setExpandedMenus(new Set(allIds));
+//   };
+
+//   const collapseAll = () => {
+//     setExpandedMenus(new Set());
+//     // clear loca
+//     localStorage.removeItem("menus");
+//   };
+
+//   const getAllMenuIds = (items: MenuItem[]): string[] => {
+//     return items.reduce((acc: string[], item) => {
+//       acc.push(item.id);
+//       if (item.children) {
+//         acc.push(...getAllMenuIds(item.children));
+//       }
+//       return acc;
+//     }, []);
+//   };
+
+//   const addNewMenuItem = (parentId: string) => {
+//     // Find the parent item to determine the depth of the new item
+//     const findParent = (
+//       items: MenuItem[],
+//       parentId: string
+//     ): MenuItem | null => {
+//       for (const item of items) {
+//         if (item.id === parentId) {
+//           return item;
+//         }
+//         if (item.children) {
+//           const found = findParent(item.children, parentId);
+//           if (found) {
+//             return found;
+//           }
+//         }
+//       }
+//       return null;
+//     };
+
+//     const parentItem = findParent(menus, parentId);
+//     const newDepth = parentItem ? parentItem.depth + 1 : 0;
+
+//     // Determine the type based on the depth
+//     let newType: "root" | "group" | "section" | "item";
+//     if (newDepth === 0) {
+//       newType = "root";
+//     } else if (newDepth === 1) {
+//       newType = "group";
+//     } else if (newDepth === 2) {
+//       newType = "section";
+//     } else {
+//       newType = "item";
+//     }
+
+//     const newItem: MenuItem = {
+//       id: Math.random().toString(36).substr(2, 9),
+//       name: "New Menu Item",
+//       parentId: parentId,
+//       depth: newDepth,
+//       type: newType,
+//     };
+
+//     const updateMenus = (items: MenuItem[]): MenuItem[] => {
+//       return items.map((item) => {
+//         if (item.id === parentId) {
+//           return {
+//             ...item,
+//             children: [
+//               ...(item.children || []),
+//               { ...newItem, depth: newDepth },
+//             ],
+//           };
+//         }
+//         if (item.children) {
+//           return {
+//             ...item,
+//             children: updateMenus(item.children),
+//           };
+//         }
+//         return item;
+//       });
+//     };
+
+//     const updatedMenus = updateMenus(menus);
+//     setMenus(updatedMenus);
+//     localStorage.setItem("menus", JSON.stringify(updatedMenus));
+//     setExpandedMenus((prev) => new Set([...prev, parentId]));
+//     setExpandedNav((prev) => new Set([...prev, parentId]));
+//   };
+
+//   const getMenuIcon = (type: string) => {
+//     switch (type) {
+//       case "root":
+//       case "group":
+//         return <Folder className="w-5 h-5" />;
+//       case "section":
+//         return <LayoutDashboard className="w-5 h-5" />;
+//       case "item":
+//         return <File className="w-5 h-5" />;
+//       default:
+//         return <File className="w-5 h-5" />;
+//     }
+//   };
+
+//   const renderMenuItem = (item: MenuItem) => {
+//     const isExpanded = expandedMenus.has(item.id);
+//     const hasChildren = item.children && item.children.length > 0;
+
+//     return (
+//       <div key={item.id} className="relative">
+//         <div className="flex items-center gap-2 py-2 group hover:bg-gray-50 rounded px-2">
+//           {item.depth > 0 && (
+//             <div
+//               className="absolute left-[-24px] w-6 border-t border-gray-300"
+//               style={{ top: "50%" }}
+//             />
+//           )}
+//           {item.depth > 0 && (
+//             <div
+//               className="absolute left-[-24px] h-full border-l border-gray-300"
+//               style={{ top: "-50%" }}
+//             />
+//           )}
+
+//           <div className="flex items-center gap-2">
+//             {hasChildren ? (
+//               <button
+//                 onClick={(e) => toggleExpand(item.id, e)}
+//                 className="w-4 h-4 flex items-center justify-center hover:bg-gray-100 rounded transition-colors"
+//               >
+//                 {isExpanded ? (
+//                   <ChevronDown className="w-4 h-4" />
+//                 ) : (
+//                   <ChevronRight className="w-4 h-4" />
+//                 )}
+//               </button>
+//             ) : (
+//               <div className="w-4" />
+//             )}
+
+//             {getMenuIcon(item.type)}
+
+//             <span
+//               className={`cursor-pointer ${
+//                 selectedMenu?.id === item.id ? "text-blue-600 font-medium" : ""
+//               } hover:text-blue-600`}
+//               onClick={() => setSelectedMenu(item)}
+//             >
+//               {item.name}
+//             </span>
+
+//             <button
+//               onClick={() => addNewMenuItem(item.id)}
+//               className="opacity-0 group-hover:opacity-100 ml-2 text-blue-500 hover:text-blue-700 transition-opacity"
+//             >
+//               <Plus className="w-4 h-4" />
+//             </button>
+//           </div>
+//         </div>
+
+//         {isExpanded && item.children && (
+//           <div className="ml-8 relative">
+//             {item.children.map((child) => renderMenuItem(child))}
+//           </div>
+//         )}
+//       </div>
+//     );
+//   };
+
+//   const renderSidebarItem = (item: MenuItem, depth = 0) => {
+//     // Skip rendering if the item type is "item"
+//     if (item.type === "item") {
+//       return null;
+//     }
+
+//     // Skip rendering the root and only render its children
+//     if (item.type === "root") {
+//       return item.children?.map((child) => renderSidebarItem(child, depth));
+//     }
+
+//     const hasChildren = item.children && item.children.length > 0;
+//     const isExpanded = expandedNav.has(item.id);
+
+//     return (
+//       <div key={item.id} className="space-y-1">
+//         {/* Parent Item */}
+//         <div
+//           className={`flex items-center gap-2 px-4 py-2 rounded cursor-pointer ${
+//             selectedMenu?.id === item.id
+//               ? "bg-green-500 text-white"
+//               : "hover:bg-gray-800"
+//           }`}
+//           style={{ paddingLeft: `${depth * 16}px` }} // Indentation for hierarchy
+//           onClick={() => {
+//             if (hasChildren) {
+//               toggleNavExpand(item.id);
+//             }
+//             setSelectedMenu(item);
+//           }}
+//         >
+//           {hasChildren && item.type !== "section" && (
+//             <span className="w-4 h-4 flex items-center justify-center">
+//               {isExpanded ? (
+//                 <ChevronDown className="w-4 h-4" />
+//               ) : (
+//                 <ChevronRight className="w-4 h-4" />
+//               )}
+//             </span>
+//           )}
+
+//           {/* Menu Type Icons */}
+//           {getMenuIcon(item.type)}
+//           {/* Menu Name */}
+//           <span>{item.name}</span>
+//         </div>
+
+//         {/* Child Items (Recursive Call) */}
+//         {depth < 2 && hasChildren && isExpanded && (
+//           <div className="ml-4 space-y-1">
+//             {item.children
+//               .filter((child) => child.type !== "item") // Filter out "item" type children
+//               .map((child) => renderSidebarItem(child, depth + 1))}
+//           </div>
+//         )}
+//       </div>
+//     );
+//   };
+
+//   const saveMenuChanges = () => {
+//     if (selectedMenu) {
+//       const updateMenus = (items: MenuItem[]): MenuItem[] => {
+//         return items.map((item) => {
+//           if (item.id === selectedMenu.id) {
+//             return { ...item, ...selectedMenu };
+//           }
+//           if (item.children) {
+//             return {
+//               ...item,
+//               children: updateMenus(item.children),
+//             };
+//           }
+//           return item;
+//         });
+//       };
+
+//       console.log(selectedMenu);
+
+//       const updatedMenus = updateMenus(menus);
+//       setMenus(updatedMenus);
+//       localStorage.setItem("menus", JSON.stringify(updatedMenus));
+//     }
+//   };
+
+//   return (
+//     <div className="flex h-screen">
+//       {/* Sidebar */}
+//       <div className="w-64 bg-gray-900 text-white p-4">
+//         <div className="flex items-center gap-2 mb-8">
+//           <MenuIcon className="w-6 h-6" />
+//           <span className="font-bold">CLOIT</span>
+//         </div>
+
+//         <div className="space-y-2">
+//           {menus.map((menu) => renderSidebarItem(menu))}
+//         </div>
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="flex-1 p-8">
+//         <div className="mb-8">
+//           <h1 className="text-2xl font-bold mb-4">Menu Management</h1>
+//           <select
+//             value={selectedDropdownMenu}
+//             onChange={(e) => setSelectedDropdownMenu(e.target.value)}
+//             className="w-64 p-2 border rounded"
+//           >
+//             <option value="system management">system management</option>
+//           </select>
+//         </div>
+
+//         <div className="flex gap-8">
+//           {/* Menu Tree */}
+//           <div className="w-1/2">
+//             <div className="mb-4 space-x-4">
+//               <button
+//                 onClick={expandAll}
+//                 className="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700"
+//               >
+//                 Expand All
+//               </button>
+//               <button
+//                 onClick={collapseAll}
+//                 className="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50"
+//               >
+//                 Collapse All
+//               </button>
+//             </div>
+//             <div className="border rounded p-4">
+//               {menus.map((menu) => renderMenuItem(menu))}
+//             </div>
+//           </div>
+
+//           {/* Menu Details */}
+//           {selectedMenu && (
+//             <div className="w-1/2">
+//               <div className="border rounded p-4 space-y-4">
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     Menu ID
+//                   </label>
+//                   <input
+//                     type="text"
+//                     value={selectedMenu.id}
+//                     disabled
+//                     className="mt-1 block w-full p-2 border rounded bg-gray-50"
+//                   />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     Depth
+//                   </label>
+//                   <input
+//                     type="number"
+//                     value={selectedMenu.depth}
+//                     disabled
+//                     className="mt-1 block w-full p-2 border rounded bg-gray-50"
+//                   />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     Parent Data
+//                   </label>
+//                   <input
+//                     type="text"
+//                     value={selectedMenu.parentId || "Root"}
+//                     disabled
+//                     className="mt-1 block w-full p-2 border rounded bg-gray-50"
+//                   />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     Name
+//                   </label>
+//                   <input
+//                     type="text"
+//                     value={selectedMenu.name}
+//                     onChange={(e) =>
+//                       setSelectedMenu({ ...selectedMenu, name: e.target.value })
+//                     }
+//                     className="mt-1 block w-full p-2 border rounded"
+//                   />
+//                 </div>
+//                 <button
+//                   onClick={saveMenuChanges}
+//                   className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+//                 >
+//                   Save
+//                 </button>
+//               </div>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// in this page i used localstorage i want you replace the given apis and use redux with best practices for the given page specifay the code and the directories
+
+// https://menu-backend-hryz.onrender.com/api/menu
+// this is my api
+// [Nest] 121  - 02/21/2025, 7:04:11 AM     LOG [NestFactory] Starting Nest application...
+// [Nest] 121  - 02/21/2025, 7:04:11 AM     LOG [InstanceLoader] AppModule dependencies initialized +101ms
+// [Nest] 121  - 02/21/2025, 7:04:11 AM     LOG [InstanceLoader] PrismaModule dependencies initialized +0ms
+// [Nest] 121  - 02/21/2025, 7:04:11 AM     LOG [InstanceLoader] MenuModule dependencies initialized +0ms
+// [Nest] 121  - 02/21/2025, 7:04:11 AM     LOG [RoutesResolver] MenuController {/api/menu}: +6ms
+// [Nest] 121  - 02/21/2025, 7:04:11 AM     LOG [RouterExplorer] Mapped {/api/menu, GET} route +4ms
+// [Nest] 121  - 02/21/2025, 7:04:11 AM     LOG [RouterExplorer] Mapped {/api/menu/:id, GET} route +1ms
+// [Nest] 121  - 02/21/2025, 7:04:11 AM     LOG [RouterExplorer] Mapped {/api/menu, POST} route +0ms
+// [Nest] 121  - 02/21/2025, 7:04:11 AM     LOG [RouterExplorer] Mapped {/api/menu/:id, PUT} route +88ms
+// [Nest] 121  - 02/21/2025, 7:04:11 AM     LOG [RouterExplorer] Mapped {/api/menu/:id, DELETE} route +1ms
+// [Nest] 121  - 02/21/2025, 7:04:12 AM     LOG [NestApplication] Nest application successfully started +836ms

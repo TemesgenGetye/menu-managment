@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "env": {
+    "DATABASE_URL": "@database_url_postgres"
+  },
+  "builds": [
+    {
+      "src": "src/main.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "src/main.js",
+      "methods": ["GET", "POST", "PUT", "DELETE"]
+    }
+  ]
+}
