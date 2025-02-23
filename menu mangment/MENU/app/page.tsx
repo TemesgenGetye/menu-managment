@@ -285,7 +285,7 @@ export default function MenuSystem() {
         <div
           className={`flex cursor-pointer items-center gap-2 rounded px-3 py-2 text-sm ${
             selectedMenu?.id === item.id
-              ? "bg-primary text-primary-foreground"
+              ? "bg-green-400 text-primary-foreground"
               : "text-gray-200 hover:bg-gray-800"
           }`}
           style={{ paddingLeft: `${depth * 12 + 12}px` }}
